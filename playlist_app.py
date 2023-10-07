@@ -1,5 +1,6 @@
 import sys
 import sqlite3
+import os
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout, QListWidget, QSlider, QLabel
 from PyQt5.QtCore import Qt, QTimer, QUrl, QSize
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
@@ -10,7 +11,8 @@ class PlaylistApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("ZXCmusic")
-        self.setGeometry(100, 100, 400, 300)
+        self.setWindowIcon(QIcon('icons/main.png'))
+        self.setGeometry(100, 100, 300, 300)
 
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
@@ -50,7 +52,7 @@ class PlaylistApp(QMainWindow):
         self.prev_button.setPixmap(prev_icon)
         self.prev_button.setFixedSize(25, 25)  # Устанавливаем размер QLabel равным 30x30
         self.prev_button.setAlignment(Qt.AlignCenter)
-        self.prev_button.mousePressEvent = self.play_next_song  # Привязываем обработчик события клика к функции play_next_song
+        self.prev_button.mousePressEvent = self.play_previous_song  # Привязываем обработчик события клика к функции play_next_song
 
         self.volume_slider = QSlider(Qt.Horizontal, self)
         self.seek_slider = QSlider(Qt.Horizontal, self)
@@ -133,13 +135,13 @@ class PlaylistApp(QMainWindow):
         layout.addWidget(self.play_button)
         layout.addWidget(self.album_cover_label)  # Добавляем QLabel с фото альбома
 
-        # Создайте горизонтальный макет для размещения кнопок и обложки альбома
+        # Создаём горизонтальный макет для размещения кнопок и обложки альбома
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.prev_button)
         button_layout.addWidget(self.pause_resume_icon_label)
         button_layout.addWidget(self.next_button)
 
-        layout.addLayout(button_layout)  # Добавьте горизонтальный макет в вертикальный
+        layout.addLayout(button_layout)  # Добавляем горизонтальный макет в вертикальный
 
         layout.addWidget(self.volume_slider)
         layout.addWidget(self.current_time_label)
@@ -158,6 +160,7 @@ class PlaylistApp(QMainWindow):
         self.media_timer.timeout.connect(self.update_seek_slider)
 
         self.current_song_index = 0
+        self.media_player.durationChanged.connect(self.update_total_length)
 
         self.media_player.mediaStatusChanged.connect(self.handle_media_status_changed)  # Перенесено сюда
 
@@ -208,15 +211,14 @@ class PlaylistApp(QMainWindow):
                 print(f"Ошибка при загрузке плейлиста: {e}")
 
     def play_media_file(self, file_path):
-        media_content = QMediaContent(QUrl.fromLocalFile(file_path))
+        full_file_path = os.path.join(os.path.dirname(__file__), file_path)  # Получаем полный путь к файлу
+        media_content = QMediaContent(QUrl.fromLocalFile(full_file_path))
         self.media_player.setMedia(media_content)
 
         self.update_seek_slider()  # Обновляем слайдер перемотки
         self.media_player.play()
         self.media_timer.start()
 
-        duration = self.media_player.duration()
-        self.update_total_length(duration)  # Обновляем общую длительность
         # Здесь предполагается, что у трека есть поле image_path в базе данных
         self.cursor.execute("SELECT image_path FROM tracks WHERE file_path=?", (file_path,))
         track_image_path = self.cursor.fetchone()[0]
@@ -252,7 +254,7 @@ class PlaylistApp(QMainWindow):
                 print(f"Ошибка при загрузке информации о треке: {e}")
 
     def update_total_length(self, duration):
-        if duration >= 0:
+        if duration > 0:
             minutes, seconds = divmod(duration // 1000, 60)
             time_str = f"{minutes:02d}:{seconds:02d}"
             self.total_length_label.setText(time_str)  # Установите значение в QLabel
@@ -263,7 +265,10 @@ class PlaylistApp(QMainWindow):
         self.current_time_label.setText(time_str)
 
     def next_song_clicked(self, event):
-        self.play_next_song()               
+        self.play_next_song()
+
+    def previous_song_clicked(self, event):
+        self.play_previous_song()               
 
     def play_next_song(self, event=None):
         selected_item = self.playlist_list.currentItem()
@@ -276,7 +281,6 @@ class PlaylistApp(QMainWindow):
                     files = playlist[1].split(", ")
                     self.current_song_index = (self.current_song_index + 1) % len(files)
                     self.play_media_file(files[self.current_song_index])
-                    self.update_total_length(self.media_player.duration())  # Обновляем общую длительность
             except sqlite3.Error as e:
                 print(f"Ошибка при загрузке плейлиста: {e}")
 
@@ -285,7 +289,7 @@ class PlaylistApp(QMainWindow):
             # Текущий трек завершился, переключаемся на следующий
             self.play_next_song()            
 
-    def play_previous_song(self):
+    def play_previous_song(self, event=None):
         selected_item = self.playlist_list.currentItem()
         if selected_item is not None:
             playlist_name = selected_item.text()
@@ -295,8 +299,12 @@ class PlaylistApp(QMainWindow):
                 if playlist is not None:
                     files = playlist[1].split(", ")
                     self.current_song_index = (self.current_song_index - 1) % len(files)
+
+                    # Проверяем, стал ли индекс отрицательным
+                    if self.current_song_index < 0:
+                        self.current_song_index = len(files) - 1
+
                     self.play_media_file(files[self.current_song_index])
-                    self.update_total_length(self.media_player.duration())  # Обновляем общую длительность
             except sqlite3.Error as e:
                 print(f"Ошибка при загрузке плейлиста: {e}")
                       
