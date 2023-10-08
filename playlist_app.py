@@ -1,28 +1,21 @@
 import sys
 import sqlite3
 import os
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout, QListWidget, QSlider, QLabel
-from PyQt5.QtCore import Qt, QTimer, QUrl, QSize
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QListWidget, QSlider, QLabel
+from PyQt5.QtCore import Qt, QTimer, QUrl
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtWidgets import QHBoxLayout
 
-class PlaylistApp(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("ZXCmusic")
-        self.setWindowIcon(QIcon('icons/main.png'))
-        self.setGeometry(100, 100, 300, 300)
-
-        self.central_widget = QWidget(self)
-        self.setCentralWidget(self.central_widget)
+class PlaylistApp(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
         self.playlist_list = QListWidget(self)
 
         self.load_button = QPushButton("Загрузить Плейлист", self)
         self.load_button.clicked.connect(self.load_playlist)
 
-        # Создаем QLabel для отображения фото альбома
         self.album_cover_label = QLabel(self)
         self.album_cover_label.setFixedSize(300, 300)  # Устанавливаем размер
         self.album_cover_label.setAlignment(Qt.AlignCenter)
@@ -58,70 +51,9 @@ class PlaylistApp(QMainWindow):
         self.seek_slider = QSlider(Qt.Horizontal, self)
 
         self.volume_slider.setObjectName("volume_slider")
-
-        self.volume_slider.setStyleSheet("""
-            QSlider#volume_slider {
-                border: none;
-                background: white;
-                height: 10px;
-                border-radius: 4px;
-            }
-
-            QSlider#volume_slider::groove:horizontal {
-                border: none;
-                background: none;
-                height: 10px;
-            }
-
-            QSlider#volume_slider::sub-page:horizontal {
-                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #f50021, stop: 1 #940000);
-                height: 10px;
-                border-radius: 4px;
-            }
-
-            QSlider#volume_slider::handle:horizontal {
-                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #eee, stop: 1 #ccc);
-                border: none;
-                width: 13px;
-                margin-top: -2px;
-                margin-bottom: -2px;
-                border-radius: 4px;
-            }
-        """)
-        
-
         self.seek_slider.setObjectName("seek_slider")
 
-        self.seek_slider.setStyleSheet("""
-            QSlider#seek_slider {
-                border: none;
-                background: white;
-                height: 10px;
-                border-radius: 4px;
-            }
-
-            QSlider#seek_slider::groove:horizontal {
-                border: none;
-                background: none;
-                height: 10px;
-                border-radius: 5px; /* Задаем радиус, чтобы сделать серую часть слайдера круглой */
-            }
-
-            QSlider#seek_slider::sub-page:horizontal {
-                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #f50021, stop: 1 #940000);
-                height: 10px;
-                border-radius: 4px;
-            }
-
-            QSlider#seek_slider::handle:horizontal {
-                background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #eee, stop: 1 #ccc);
-                border: none;
-                width: 13px;
-                margin-top: -2px;
-                margin-bottom: -2px;
-                border-radius: 4px;
-            }
-        """)
+       
 
         with open('styles.css', 'r') as file:
             self.setStyleSheet(file.read())
@@ -129,7 +61,7 @@ class PlaylistApp(QMainWindow):
         self.current_time_label = QLabel("00:00", self)
         self.total_length_label = QLabel("00:00", self)
 
-        layout = QVBoxLayout(self.central_widget)
+        layout = QVBoxLayout(self)
         layout.addWidget(self.playlist_list)
         layout.addWidget(self.load_button)
         layout.addWidget(self.play_button)
