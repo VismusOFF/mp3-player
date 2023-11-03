@@ -16,32 +16,36 @@ QPushButton:hover {
     background-color: #AAAAAA;
 }
 
-QSlider#volume_slider { 
+QSlider#volume_slider {
     border: none;
-    background: #717171;
-    height: 10px;
-    border-radius: 4px; 
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #f50021, stop: 1 #940000);
+    width: 10px; /* Устанавливаем ширину вертикального слайдера */
+    height: 100px; /* Устанавливаем высоту вертикального слайдера */
+    border-radius: 4px;
+    margin-top: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
 }
 
-QSlider#volume_slider::groove:horizontal { 
+QSlider#volume_slider::groove:vertical {
     border: none;
     background: none;
-    height: 10px; 
+    width: 10px; /* Ширина грува вертикального слайдера */
 }
 
-QSlider#volume_slider::sub-page:horizontal { 
-    background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #f50021, stop: 1 #940000);
-    height: 10px; 
-    border-radius: 4px; 
+QSlider#volume_slider::sub-page:vertical {
+    background: #717171;
+    width: 10px; /* Ширина фона (заполненной части) вертикального слайдера */
+    border-radius: 4px;
 }
 
-QSlider#volume_slider::handle:horizontal { 
+QSlider#volume_slider::handle:vertical {
     background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #eee, stop: 1 #ccc);
     border: none;
-    width: 13px; 
-    margin-top: -2px;
-    margin-bottom: -2px; 
-    border-radius: 4px; 
+    height: 13px; /* Высота ползунка вертикального слайдера */
+    margin-left: -2px;
+    margin-right: -2px;
+    border-radius: 4px;
 }
 
 QSlider#seek_slider { 

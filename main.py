@@ -9,7 +9,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.setWindowTitle("ZXCmusic")
         self.setWindowIcon(QIcon('icons/main.png'))
-        self.setGeometry(100, 100, 300, 300)
+        self.setGeometry(100, 100, 300, 700)
 
         tab_widget = QTabWidget(self)
 

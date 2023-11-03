@@ -45,7 +45,7 @@ class PlaylistApp(QWidget):
         self.prev_button.setAlignment(Qt.AlignCenter)
         self.prev_button.mousePressEvent = self.play_previous_song  # Привязываем обработчик события клика к функции play_next_song
 
-        self.volume_slider = QSlider(Qt.Horizontal, self)
+        self.volume_slider = QSlider(Qt.Vertical, self)
         self.seek_slider = QSlider(Qt.Horizontal, self)
 
         self.volume_slider.setObjectName("volume_slider")
@@ -73,11 +73,15 @@ class PlaylistApp(QWidget):
 
         layout.addLayout(button_layout)  # Добавляем горизонтальный макет в вертикальный
 
-        layout.addWidget(self.volume_slider)
-        layout.addWidget(self.current_time_label)
-        layout.addWidget(self.total_length_label)
-        layout.addWidget(self.seek_slider)
+        slider_layout = QHBoxLayout()
+        slider_layout.addWidget(self.current_time_label)
+        slider_layout.addWidget(self.seek_slider)
+        slider_layout.addWidget(self.total_length_label)
+        slider_layout.addWidget(self.volume_slider)
+
+        layout.addLayout(slider_layout)
         
+        down_layout = QVBoxLayout()
 
         self.db_connection = sqlite3.connect("my_playlist.db")
         self.cursor = self.db_connection.cursor()
