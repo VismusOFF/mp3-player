@@ -1,23 +1,24 @@
 * {
-    background: #333;
+    background: black;
     color: white;
 }
 
 QPushButton {
-    background-color: #940000;
+    background-color: #333333;
     color: white;
     border: none;
     border-radius: 5px;
     padding: 10px 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 QPushButton:hover {
-    background-color: #fe415a;
+    background-color: #AAAAAA;
 }
 
 QSlider#volume_slider { 
     border: none;
-    background: white;
+    background: #717171;
     height: 10px;
     border-radius: 4px; 
 }
@@ -45,7 +46,7 @@ QSlider#volume_slider::handle:horizontal {
 
 QSlider#seek_slider { 
     border: none; 
-    background: white; 
+    background: #717171; 
     height: 10px; 
     border-radius: 4px; 
 }

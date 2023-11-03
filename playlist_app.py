@@ -29,21 +29,19 @@ class PlaylistApp(QWidget):
 
         
         self.pause_resume_icon_label = QLabel(self)
-        self.pause_resume_icon_label.setPixmap(QPixmap('icons/pause.png').scaled(30, 30, Qt.KeepAspectRatio))
+        self.pause_resume_icon_label.setPixmap(QPixmap('icons/pause.png'))
         self.pause_resume_icon_label.setAlignment(Qt.AlignCenter)
         self.pause_resume_icon_label.mousePressEvent = self.toggle_pause_resume
 
         self.next_button = QLabel(self)
-        next_icon = QPixmap('icons/next.png').scaled(30, 30, Qt.KeepAspectRatio)
+        next_icon = QPixmap('icons/next.png')
         self.next_button.setPixmap(next_icon)
-        self.next_button.setFixedSize(25, 25)  # Устанавливаем размер QLabel равным 30x30
         self.next_button.setAlignment(Qt.AlignCenter)
         self.next_button.mousePressEvent = self.play_next_song  # Привязываем обработчик события клика к функции play_next_song
 
         self.prev_button = QLabel(self)
-        prev_icon = QPixmap('icons/last.png').scaled(30, 30, Qt.KeepAspectRatio)
+        prev_icon = QPixmap('icons/last.png')
         self.prev_button.setPixmap(prev_icon)
-        self.prev_button.setFixedSize(25, 25)  # Устанавливаем размер QLabel равным 30x30
         self.prev_button.setAlignment(Qt.AlignCenter)
         self.prev_button.mousePressEvent = self.play_previous_song  # Привязываем обработчик события клика к функции play_next_song
 
@@ -116,10 +114,10 @@ class PlaylistApp(QWidget):
     def toggle_pause_resume(self, event):
         if self.is_playing:
             self.media_player.pause()
-            self.pause_resume_icon_label.setPixmap(QPixmap('icons/play.png').scaled(30, 30, Qt.KeepAspectRatio))
+            self.pause_resume_icon_label.setPixmap(QPixmap('icons/play.png'))
         else:
             self.media_player.play()
-            self.pause_resume_icon_label.setPixmap(QPixmap('icons/pause.png').scaled(30, 30, Qt.KeepAspectRatio))
+            self.pause_resume_icon_label.setPixmap(QPixmap('icons/pause.png'))
         self.is_playing = not self.is_playing
 
     def play_media(self):
