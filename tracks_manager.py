@@ -1,10 +1,15 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QScrollArea
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 import sqlite3
 
+from playlist_app import PlaylistApp
+
 class SongViewer(QMainWindow):
+
+    song_play_request = pyqtSignal(str)
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -15,6 +20,7 @@ class SongViewer(QMainWindow):
         # Get data from tracks table
         cursor.execute('SELECT id, image_path, name_track, author, file_path FROM tracks')
         result = cursor.fetchall()
+        self.song_play_request.connect(parent.playlist_app.play_media_file)
 
         # Create GUI
         self.setWindowTitle('Song Viewer')
@@ -38,6 +44,7 @@ class SongViewer(QMainWindow):
             h_box = QHBoxLayout()
             
             song_id = QLabel(f'{row[0]}', self)
+            song_id.mousePressEvent = lambda event, file_path=row[4]: self.song_id_clicked(event, file_path)
             song_id.setContentsMargins(0, 0, 10, 0)
             song_id.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
             song_id.setFixedWidth(30)
@@ -71,6 +78,9 @@ class SongViewer(QMainWindow):
         # Close database connection
         cursor.close()
         conn.close()
+
+    def song_id_clicked(self, event, file_path):
+        self.song_play_request.emit(file_path)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
