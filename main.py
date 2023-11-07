@@ -17,6 +17,8 @@ class MainWindow(QMainWindow):
         self.playlist_app = PlaylistApp(self)
         self.playlistmanager = PlaylistManagerApp(self)
         self.songviewer = SongViewer(self)  # New SongViewer instance
+        self.songviewer.cover_change_request.connect(self.change_cover)  # New connection
+        print("Cover change request connected")  # Add this print statement
 
         icon_home = QIcon('icons/home.png')
         icon_home.addPixmap(icon_home.pixmap(50, 50))  # Set icon size
@@ -42,6 +44,9 @@ class MainWindow(QMainWindow):
         tab_widget.setStyleSheet("QTabWidget::pane {background: black;}")
 
         self.setCentralWidget(tab_widget)
+
+    def change_cover(self, image_path):
+        self.playlist_app.set_cover(image_path)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -9,6 +9,7 @@ from playlist_app import PlaylistApp
 class SongViewer(QMainWindow):
 
     song_play_request = pyqtSignal(str)
+    cover_change_request = pyqtSignal(str)  # New signal
 
     def __init__(self, parent=None):
         super().__init__(parent)
