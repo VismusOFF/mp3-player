@@ -45,7 +45,7 @@ class SongViewer(QMainWindow):
             h_box = QHBoxLayout()
             
             song_id = QLabel(f'{row[0]}', self)
-            song_id.mousePressEvent = lambda event, file_path=row[4]: self.song_id_clicked(event, file_path)
+            song_id.mousePressEvent = lambda event, file_path=row[4], image_path=row[1]: self.song_id_clicked(event, file_path, image_path)
             song_id.setContentsMargins(0, 0, 10, 0)
             song_id.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
             song_id.setFixedWidth(30)
@@ -80,8 +80,9 @@ class SongViewer(QMainWindow):
         cursor.close()
         conn.close()
 
-    def song_id_clicked(self, event, file_path):
+    def song_id_clicked(self, event, file_path, image_path):
         self.song_play_request.emit(file_path)
+        self.cover_change_request.emit(image_path)  # Send change cover request
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

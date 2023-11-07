@@ -2,12 +2,14 @@ import sys
 import sqlite3
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QListWidget, QSlider, QLabel
-from PyQt5.QtCore import Qt, QTimer, QUrl
+from PyQt5.QtCore import Qt, QTimer, QUrl, pyqtSignal
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtGui import QPixmap, QIcon, QBitmap, QPainter
 from PyQt5.QtWidgets import QHBoxLayout
 
 class PlaylistApp(QWidget):
+
+    cover_change_request = pyqtSignal(str)  # New signal
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -109,6 +111,29 @@ class PlaylistApp(QWidget):
 
         self.seek_slider.sliderMoved.connect(self.seek_media)
 
+    def set_cover(self, image_path):
+        # Ensure the image file exists
+        if os.path.exists(image_path):
+            pixmap = QPixmap(image_path)
+            pixmap = pixmap.scaled(300, 300, Qt.KeepAspectRatio)
+            self.album_cover_label.setPixmap(pixmap)
+
+            # Round the image corners
+            mask = QBitmap(pixmap.size())
+            mask.fill(Qt.white)
+            painter = QPainter(mask)
+            painter.setBrush(Qt.black)
+            painter.drawEllipse(0, 0, pixmap.width(), pixmap.height())
+            painter.end()
+
+            # Set the mask
+            self.album_cover_label.setMask(mask)
+
+            self.album_cover_label.setFixedSize(300, 300)
+            self.album_cover_label.setAlignment(Qt.AlignCenter)
+        else:
+            print(f"Image file not found: {image_path}")
+
     def load_playlist(self):
         self.playlist_list.clear()
         try:
@@ -178,43 +203,11 @@ class PlaylistApp(QWidget):
 
         self.album_cover_label.setFixedSize(300, 300)
         self.album_cover_label.setAlignment(Qt.AlignCenter)
-
-        # Получаем информацию о текущем треке, включая путь к изображению
-        selected_item = self.playlist_list.currentItem()
-        if selected_item is not None:
-            playlist_name = selected_item.text()
-            try:
-                self.cursor.execute("SELECT * FROM playlists WHERE name=?", (playlist_name,))
-                playlist = self.cursor.fetchone()
-                if playlist is not None:
-                    files = playlist[1].split(", ")
-                    current_track_file = files[self.current_song_index]
-
-                    # Здесь предполагается, что у трека есть поле image_path в базе данных
-                    self.cursor.execute("SELECT image_path FROM tracks WHERE file_path=?", (current_track_file,))
-                    track_image_path = self.cursor.fetchone()[0]
-
-                    # Устанавливаем изображение трека в QLabel
-                    pixmap = QPixmap(track_image_path)
-                    pixmap = pixmap.scaled(300, 300, Qt.KeepAspectRatio)
-                    self.album_cover_label.setPixmap(pixmap)
-
-                    # Округляем края изображения
-                    mask = QBitmap(pixmap.size())
-                    mask.fill(Qt.white)
-                    painter = QPainter(mask)
-                    painter.setBrush(Qt.black)
-                    painter.drawEllipse(0, 0, pixmap.width(), pixmap.height())
-                    painter.end()
-
-                    # Устанавливаем маску
-                    self.album_cover_label.setMask(mask)
-
-                    self.album_cover_label.setFixedSize(300, 300)
-                    self.album_cover_label.setAlignment(Qt.AlignCenter)
-
-            except sqlite3.Error as e:
-                print(f"Ошибка при загрузке информации о треке: {e}")
+        
+        if track_image_path:  # Если путь к изображению не None и не пуст.
+            self.cover_change_request.emit(track_image_path)  # Вместо image_path используйте track_image_path
+        else:
+            print("Error: no image path found for the track.")
 
     def update_total_length(self, duration):
         if duration > 0:

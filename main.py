@@ -1,5 +1,7 @@
+import os
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QTabBar, QWidget
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtGui import QIcon, QPixmap, QBitmap, QPainter
+from PyQt5.QtCore import Qt
 from playlist_app import PlaylistApp
 from playlist_manager import PlaylistManagerApp
 from tracks_manager import SongViewer
@@ -44,6 +46,9 @@ class MainWindow(QMainWindow):
         tab_widget.setStyleSheet("QTabWidget::pane {background: black;}")
 
         self.setCentralWidget(tab_widget)
+
+        self.playlist_app.cover_change_request.connect(self.change_cover)  # New connection
+        self.songviewer.cover_change_request.connect(self.change_cover)  # New connection
 
     def change_cover(self, image_path):
         self.playlist_app.set_cover(image_path)
