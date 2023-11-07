@@ -13,7 +13,7 @@ class SongViewer(QMainWindow):
         cursor = conn.cursor()
 
         # Get data from tracks table
-        cursor.execute('SELECT id, image_path, name_track, author FROM tracks')
+        cursor.execute('SELECT id, image_path, name_track, author, file_path FROM tracks')
         result = cursor.fetchall()
 
         # Create GUI
