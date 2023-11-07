@@ -4,7 +4,7 @@ import os
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QListWidget, QSlider, QLabel
 from PyQt5.QtCore import Qt, QTimer, QUrl
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
-from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtGui import QPixmap, QIcon, QBitmap, QPainter
 from PyQt5.QtWidgets import QHBoxLayout
 
 class PlaylistApp(QWidget):
@@ -51,8 +51,6 @@ class PlaylistApp(QWidget):
         self.volume_slider.setObjectName("volume_slider")
         self.seek_slider.setObjectName("seek_slider")
 
-       
-
         with open('styles.css', 'r') as file:
             self.setStyleSheet(file.read())
     
@@ -63,25 +61,31 @@ class PlaylistApp(QWidget):
         layout.addWidget(self.playlist_list)
         layout.addWidget(self.load_button)
         layout.addWidget(self.play_button)
-        layout.addWidget(self.album_cover_label)  # Добавляем QLabel с фото альбома
 
-        # Создаём горизонтальный макет для размещения кнопок и обложки альбома
+        # Создаём горизонтальный макет для размещения кнопок
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.prev_button)
         button_layout.addWidget(self.pause_resume_icon_label)
         button_layout.addWidget(self.next_button)
 
-        layout.addLayout(button_layout)  # Добавляем горизонтальный макет в вертикальный
-
+        # Создаём горизонтальный макет для размещения элементов слайдера и album_cover_label
         slider_layout = QHBoxLayout()
+
         slider_layout.addWidget(self.current_time_label)
         slider_layout.addWidget(self.seek_slider)
         slider_layout.addWidget(self.total_length_label)
         slider_layout.addWidget(self.volume_slider)
 
-        layout.addLayout(slider_layout)
+        # Создаём горизонтальный макет для размещения album_cover_label
+        album_cover_layout = QHBoxLayout()
+        album_cover_layout.addStretch(1)  # Распределительный элемент слева
+        album_cover_layout.addWidget(self.album_cover_label)
+        album_cover_layout.addStretch(1)  # Распределительный элемент справа
+
+        layout.addLayout(album_cover_layout)  # Добавляем горизонтальный макет с обложкой
+        layout.addLayout(button_layout)  # Добавляем горизонтальный макет в вертикальный
+        layout.addLayout(slider_layout)  # Добавляем горизонтальный макет с элементами слайдера
         
-        down_layout = QVBoxLayout()
 
         self.db_connection = sqlite3.connect("my_playlist.db")
         self.cursor = self.db_connection.cursor()
@@ -160,6 +164,18 @@ class PlaylistApp(QWidget):
         pixmap = QPixmap(track_image_path)
         pixmap = pixmap.scaled(300, 300, Qt.KeepAspectRatio)
         self.album_cover_label.setPixmap(pixmap)
+
+        # Округляем края изображения
+        mask = QBitmap(pixmap.size())
+        mask.fill(Qt.white)
+        painter = QPainter(mask)
+        painter.setBrush(Qt.black)
+        painter.drawEllipse(0, 0, pixmap.width(), pixmap.height())
+        painter.end()
+
+        # Устанавливаем маску
+        self.album_cover_label.setMask(mask)
+
         self.album_cover_label.setFixedSize(300, 300)
         self.album_cover_label.setAlignment(Qt.AlignCenter)
 
@@ -182,7 +198,20 @@ class PlaylistApp(QWidget):
                     pixmap = QPixmap(track_image_path)
                     pixmap = pixmap.scaled(300, 300, Qt.KeepAspectRatio)
                     self.album_cover_label.setPixmap(pixmap)
+
+                    # Округляем края изображения
+                    mask = QBitmap(pixmap.size())
+                    mask.fill(Qt.white)
+                    painter = QPainter(mask)
+                    painter.setBrush(Qt.black)
+                    painter.drawEllipse(0, 0, pixmap.width(), pixmap.height())
+                    painter.end()
+
+                    # Устанавливаем маску
+                    self.album_cover_label.setMask(mask)
+
                     self.album_cover_label.setFixedSize(300, 300)
+                    self.album_cover_label.setAlignment(Qt.AlignCenter)
 
             except sqlite3.Error as e:
                 print(f"Ошибка при загрузке информации о треке: {e}")

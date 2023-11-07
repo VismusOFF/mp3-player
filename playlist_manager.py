@@ -83,17 +83,18 @@ class PlaylistManagerApp(QWidget):
         track_path, _ = QFileDialog.getOpenFileName(self, "Выберите трек", "", "Audio Files (*.mp3 *.wav);;All Files (*)")
         if track_path:
             self.track_list.addItem(track_path)
-            self.save_tracks()
+            self.save_tracks(track_path)  # Pass track_path as an argument
 
-    def save_tracks(self):
+    def save_tracks(self, track_path):
         tracks = [self.track_list.item(i).text() for i in range(self.track_list.count())]
-        tracks_str = ", ".join(tracks)
+        tracks_str = ", ".join(tracks[1:]) if len(tracks) > 0 else ""
         try:
             # Обновляем запись в таблице playlists
-            self.cursor.execute("UPDATE playlists SET tracks=? WHERE name=?", (tracks_str, self.current_playlist))
+            self.cursor.execute("UPDATE playlists SET tracks=CASE WHEN tracks = '' THEN ? ELSE tracks || ', ' || ? END WHERE name=?", (tracks_str, track_path, self.current_playlist))
             
-            # Обновляем запись в таблице tracks
-            self.cursor.execute("UPDATE tracks SET file_path=? WHERE id=?", (tracks_str, self.current_playlist))
+            # После выполнения UPDATE
+            if self.cursor.rowcount > 0:  # Проверка, что обновление было выполнено
+                self.cursor.execute("INSERT INTO tracks (id, file_path, image_path) VALUES (NULL, ?, 'Alboms\\Album1.jpg')", (track_path,))
             
             self.db_connection.commit()
         except sqlite3.Error as e:

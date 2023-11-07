@@ -42,10 +42,11 @@ QSlider#volume_slider::sub-page:vertical {
 QSlider#volume_slider::handle:vertical {
     background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #eee, stop: 1 #ccc);
     border: none;
-    height: 13px; /* Высота ползунка вертикального слайдера */
+    height: 14px; /* Высота ползунка вертикального слайдера */
+    width: 14px;
     margin-left: -2px;
     margin-right: -2px;
-    border-radius: 4px;
+    border-radius: 7px;
 }
 
 QSlider#seek_slider { 
@@ -71,8 +72,9 @@ QSlider#seek_slider::sub-page:horizontal {
 QSlider#seek_slider::handle:horizontal { 
     background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #eee, stop: 1 #ccc);
     border: none;
-    width: 13px; 
+    width: 14px;
+    height: 14px;
     margin-top: -2px;
     margin-bottom: -2px; 
-    border-radius: 4px;
+    border-radius: 7px;
 }
