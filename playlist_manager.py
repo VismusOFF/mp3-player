@@ -1,110 +1,116 @@
 import sys
 import sqlite3
-import os
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QListWidget, QLineEdit, QFileDialog, QInputDialog
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QListWidgetItem, QInputDialog
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QGridLayout
 
-class PlaylistManagerApp(QWidget):
+
+class AddToPlaylistApp(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-
-        self.setWindowTitle("Менеджер плейлистов")
+        self.setWindowTitle("Менеджер песен")
         self.setGeometry(100, 100, 400, 300)
 
         self.db_connection = sqlite3.connect("my_playlist.db")
         self.cursor = self.db_connection.cursor()
 
-        self.playlist_list = QListWidget(self)
-        self.playlist_list.itemClicked.connect(self.load_playlist)
+        # Добавляем кнопку создания плейлиста
+        self.create_playlist_button = QPushButton("Создать плейлист", self)
+        self.create_playlist_button.clicked.connect(self.create_playlist)
 
-        self.create_button = QPushButton("Создать Плейлист", self)
-        self.create_button.clicked.connect(self.create_playlist)
+        # Создайте экземпляр QListWidget
+        self.song_list = QListWidget(self)
+        
+        # Создайте layout для виджета, добавьте кнопку создания плейлиста и song_list
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.create_playlist_button)
+        layout.addWidget(self.song_list)
 
-        self.track_list = QListWidget(self)
+        self.load_songs()
 
-        self.add_track_button = QPushButton("Добавить трек в плейлист", self)
-        self.add_track_button.clicked.connect(self.add_track_to_playlist)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.playlist_list)
-        layout.addWidget(self.create_button)
-        layout.addWidget(self.track_list)
-        layout.addWidget(self.add_track_button)
-        self.setLayout(layout)
-
-        self.load_playlists()
-
-    def load_playlists(self):
-        self.playlist_list.clear()
+    def load_songs(self):
         try:
-            self.cursor.execute("SELECT name FROM playlists")
-            playlists = self.cursor.fetchall()
-            for playlist in playlists:
-                self.playlist_list.addItem(playlist[0])
+            self.cursor.execute("SELECT id, image_path, name_track, author, file_path FROM tracks")
+            result = self.cursor.fetchall()
+
+            for row in result:
+                item = QListWidgetItem(self.song_list)
+                widget = QWidget()
+                layout_h = QHBoxLayout()  
+
+                image_path = row[1]
+                image_label = QLabel(self)
+                pixmap = QPixmap(image_path)
+                pixmap = pixmap.scaled(50, 50, Qt.KeepAspectRatio)
+                image_label.setPixmap(pixmap)
+
+                layout_v1 = QVBoxLayout()  
+                layout_v1.addWidget(image_label)
+
+                song_name = QLabel(f"{row[2]}", self)
+                song_author = QLabel(f"{row[3]}", self)
+                song_name.setAlignment(Qt.AlignLeft)
+                song_author.setAlignment(Qt.AlignLeft)
+
+                grid = QGridLayout()
+                grid.addWidget(song_name, 0, 0, Qt.AlignLeft)
+                grid.addWidget(song_author, 1, 0, Qt.AlignLeft)
+
+                add_button = QPushButton("Add", self)
+                add_button.setFixedSize(100, 40) 
+                add_button.clicked.connect(lambda checked, file_path=row[4]: self.add_track_to_playlist(file_path))
+
+                layout_h.addLayout(layout_v1)
+                layout_h.addLayout(grid)
+                layout_h.addWidget(add_button)
+                
+                widget.setLayout(layout_h)
+                item.setSizeHint(widget.sizeHint())
+                self.song_list.addItem(item)
+                self.song_list.setItemWidget(item, widget)
         except sqlite3.Error as e:
-            print(f"Ошибка при загрузке плейлистов: {e}")
+            print(f"Ошибка при загрузке песен: {e}")
 
     def create_playlist(self):
-        playlist_name, ok = self.get_playlist_name()
-        if ok and playlist_name:
+        playlist_name, ok = QInputDialog.getText(self, 'Создать плейлист', 'Введите имя плейлиста:')
+        if ok:
             try:
-                # Создаем запись в таблице playlists
-                self.cursor.execute("INSERT INTO playlists (name, tracks) VALUES (?, ?)", (playlist_name, ""))
-                
-                # Создаем запись в таблице tracks
-                self.cursor.execute("INSERT INTO tracks (file_path, image_path, playlist_name) VALUES (?, ?, ?)",
-                                    ("", "", playlist_name))
-                
-                self.db_connection.commit()
-                self.load_playlists()
+                self.cursor.execute("INSERT INTO playlists (name) VALUES (?)", (playlist_name,))
             except sqlite3.Error as e:
                 print(f"Ошибка при создании плейлиста: {e}")
+            else:
+                self.db_connection.commit()
 
-    def get_playlist_name(self):
-        name, ok = QInputDialog.getText(self, "Введите название плейлиста", "Название плейлиста:")
-        return name, ok
+    def add_track_to_playlist(self, track_path):
+        self.cursor.execute("SELECT name, tracks FROM playlists")
+        playlists_and_traks = self.cursor.fetchall()
+        
+        # Создаем два отдельных списка для имен плейлиста и треков
+        playlists = [pl[0] for pl in playlists_and_traks]
+        tracks = [pl[1].split(", ") if pl[1] is not None else [] for pl in playlists_and_traks]
 
-    def load_playlist(self, item):
-        self.current_playlist = item.text()
-        self.load_tracks()
-
-    def load_tracks(self):
-        self.track_list.clear()
-        try:
-            self.cursor.execute("SELECT tracks FROM playlists WHERE name=?", (self.current_playlist,))
-            playlist = self.cursor.fetchone()
-            if playlist:
-                tracks = playlist[0].split(", ")
-                for track in tracks:
-                    self.track_list.addItem(track)
-        except sqlite3.Error as e:
-            print(f"Ошибка при загрузке треков плейлиста: {e}")
-
-    def add_track_to_playlist(self):
-        track_path, _ = QFileDialog.getOpenFileName(self, "Выберите трек", "", "Audio Files (*.mp3 *.wav);;All Files (*)")
-        if track_path:
-            self.track_list.addItem(track_path)
-            self.save_tracks(track_path)  # Pass track_path as an argument
-
-    def save_tracks(self, track_path):
-        tracks = [self.track_list.item(i).text() for i in range(self.track_list.count())]
-        tracks_str = ", ".join(tracks[1:]) if len(tracks) > 0 else ""
-        try:
-            # Обновляем запись в таблице playlists
-            self.cursor.execute("UPDATE playlists SET tracks=CASE WHEN tracks = '' THEN ? ELSE tracks || ', ' || ? END WHERE name=?", (tracks_str, track_path, self.current_playlist))
-            
-            # После выполнения UPDATE
-            if self.cursor.rowcount > 0:  # Проверка, что обновление было выполнено
-                self.cursor.execute("INSERT INTO tracks (id, file_path, image_path) VALUES (NULL, ?, 'Alboms\\Album1.jpg')", (track_path,))
-            
-            self.db_connection.commit()
-        except sqlite3.Error as e:
-            print(f"Ошибка при сохранении треков плейлиста: {e}")
+        playlist_name, ok = QInputDialog.getItem(self, "Выберите плейлист", "Плейлисты", playlists, 0, False)
+        if ok and playlist_name:
+            # Получаем индекс выбранного плейлиста для получения его текущих треков
+            playlist_index = playlists.index(playlist_name)
+            if not track_path in tracks[playlist_index]:  # Если трека нет в плейлисте
+                try:
+                    # Добавляем трек в плейлист
+                    new_tracks = tracks[playlist_index] + [track_path] if tracks[playlist_index] else [track_path]
+                    self.cursor.execute("UPDATE playlists SET tracks=? WHERE name=?", (", ".join(new_tracks), playlist_name))
+                    self.db_connection.commit()
+                except sqlite3.Error as e:
+                    print(f"Ошибка при добавлении песни в плейлист: {e}")
+            else:
+                print(f"Трек уже присутствует в этом плейлисте")
 
     def closeEvent(self, event):
         self.db_connection.close()
 
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = PlaylistManagerApp()
+    window = AddToPlaylistApp()
     window.show()
     sys.exit(app.exec_())

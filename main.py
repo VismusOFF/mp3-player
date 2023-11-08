@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QTabBar, QWid
 from PyQt5.QtGui import QIcon, QPixmap, QBitmap, QPainter
 from PyQt5.QtCore import Qt
 from playlist_app import PlaylistApp
-from playlist_manager import PlaylistManagerApp
+from playlist_manager import AddToPlaylistApp
 from tracks_manager import SongViewer
 import sys
 
@@ -17,7 +17,7 @@ class MainWindow(QMainWindow):
         tab_widget = QTabWidget(self)
 
         self.playlist_app = PlaylistApp(self)
-        self.playlistmanager = PlaylistManagerApp(self)
+        self.playlistmanager = AddToPlaylistApp(self)
         self.songviewer = SongViewer(self)  # New SongViewer instance
         self.songviewer.cover_change_request.connect(self.change_cover)  # New connection
         print("Cover change request connected")  # Add this print statement
